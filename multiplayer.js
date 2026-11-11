@@ -23,15 +23,24 @@
 // for everyone; reloading the page starts a new one.
 //
 // Optional URL settings:
-//   ?room=name           separate game (default "main")
+//   ?room=name           separate game, e.g. ?room=period3
 //   ?peerserver=host:port use your own PeerJS server instead of the
 //                        free public one (used for local testing)
 
 "use strict";
 
+// ==================================================================
+// CHANGE THIS to your own GitHub username + "-wordle", for example
+// "octocat-wordle". Everyone who uses the same ID ends up in the same
+// game, so if you copy this repo and keep "jdwarr3n-wordle", your
+// players will join the original game instead of yours.
+// Use only letters, numbers and dashes.
+const GAME_ID = "jdwarr3n-wordle";
+// ==================================================================
+
 const params = new URLSearchParams(location.search);
-const ROOM = (params.get("room") || "main").toLowerCase().replace(/[^a-z0-9]/g, "") || "main";
-const HOST_ID = "jdwarr3n-wordle-f26-" + ROOM;
+const ROOM = (params.get("room") || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const HOST_ID = ROOM ? GAME_ID + "-" + ROOM : GAME_ID;
 
 const PEER_OPTIONS = {};
 if (params.get("peerserver")) {

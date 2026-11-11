@@ -30,6 +30,28 @@ There's no build step and no framework: plain HTML, CSS and JavaScript. GitHub P
 
 ---
 
+## Make your own copy
+
+1. **Copy the repo.** On GitHub, click **Fork** at the top of this repo to make a copy under your account. Or clone it and push it to a new repo of your own:
+
+    ```bash
+    git clone https://github.com/jdwarr3n/wordle-f26.git
+    ```
+
+2. **Change the multiplayer ID.** Open `multiplayer.js` and find this line near the top:
+
+    ```js
+    const GAME_ID = "jdwarr3n-wordle";
+    ```
+
+    Change `jdwarr3n` to **your** GitHub username, for example `"octocat-wordle"`. **Don't skip this step.** If you keep `jdwarr3n-wordle`, your players will join the original game instead of yours.
+
+3. **Commit and push** the change. You can also edit the file right on GitHub: open it, click the pencil icon, then **Commit changes**.
+
+4. **Turn on GitHub Pages** (see [Publishing with GitHub Pages](#publishing-with-github-pages)). Your game will be at `https://<username>.github.io/wordle-f26/`.
+
+---
+
 ## Part 1: The basic game
 
 ### Porting Python to the web
@@ -112,7 +134,7 @@ GitHub Pages only serves files. There's no server running your code, so nothing 
 Every player tries to claim the same PeerJS ID:
 
 ```js
-const peer = new Peer("jdwarr3n-wordle-f26-main");  // same ID for everyone
+const peer = new Peer("jdwarr3n-wordle");  // same ID for everyone
 peer.on("open", () => becomeHost());                 // I got it: I'm the host
 peer.on("error", err => {
   if (err.type === "unavailable-id") joinAsGuest();  // taken: join the host
@@ -122,7 +144,7 @@ peer.on("error", err => {
 1. The first person to open the page gets the ID and becomes the **host**.
 2. Everyone after that is told the ID is taken, so they connect to it as a **guest**.
 
-Nobody shares a link. The catch is that the whole world shares one game. Add `?room=name` to the address (for example, `multiplayer.html?room=period3`) to make a separate game.
+Nobody shares a link. The catch is that everyone using the same ID shares one game. That's why **each copy of this project needs its own ID** (see [Make your own copy](#make-your-own-copy)). To run separate games from one copy, add `?room=name` to the address, for example `multiplayer.html?room=period3`. That uses the ID `jdwarr3n-wordle-period3`.
 
 ### The host is in charge
 
