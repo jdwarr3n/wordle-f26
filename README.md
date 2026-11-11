@@ -32,23 +32,19 @@ There's no build step and no framework: plain HTML, CSS and JavaScript. GitHub P
 
 ## Make your own copy
 
-1. **Copy the repo.** On GitHub, click **Fork** at the top of this repo to make a copy under your account. Or clone it and push it to a new repo of your own:
+1. **Copy the repo.** On GitHub, click **Use this template** at the top of this repo, then **Create a new repository**. Name it `wordle-demo` and keep it public.
 
-    ```bash
-    git clone https://github.com/jdwarr3n/wordle-f26.git
-    ```
-
-2. **Change the multiplayer ID.** Open `multiplayer.js` and find this line near the top:
+2. **Change the multiplayer ID.** `multiplayer.js` has this line near the top:
 
     ```js
     const GAME_ID = "jdwarr3n-wordle";
     ```
 
-    Change `jdwarr3n` to **your** GitHub username, for example `"octocat-wordle"`. **Don't skip this step.** If you keep `jdwarr3n-wordle`, your players will join the original game instead of yours.
+    Ask Claude to change `jdwarr3n` to **your** GitHub username, for example `"octocat-wordle"`. **Don't skip this step.** If you keep `jdwarr3n-wordle`, your players will join the original game instead of yours.
 
-3. **Commit and push** the change. You can also edit the file right on GitHub: open it, click the pencil icon, then **Commit changes**.
+3. **Turn on GitHub Pages** (see [Publishing with GitHub Pages](#publishing-with-github-pages)). Your game will be at `https://<username>.github.io/wordle-demo/`.
 
-4. **Turn on GitHub Pages** (see [Publishing with GitHub Pages](#publishing-with-github-pages)). Your game will be at `https://<username>.github.io/wordle-f26/`.
+4. **Commit and push** the change. Ask Claude to *"Commit and push to main."*
 
 ---
 
