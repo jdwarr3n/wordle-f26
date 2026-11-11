@@ -86,15 +86,7 @@ Then open http://localhost:8000.
 
 ### Lesson: browser caching
 
-After an update, the music button did nothing. The browser had loaded the **new** `index.html` with an **old, cached** copy of the JavaScript, which didn't have the music code yet. A hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) fixed it, but your players won't know to do that.
-
-The permanent fix is a version number on each file link:
-
-```html
-<script src="common.js?v=5"></script>
-```
-
-When a `.js` or `.css` file changes, bump its number. The browser sees a new address and downloads the new file.
+After an update, the music button did nothing. The browser had loaded the **new** `index.html` with an **old, cached** copy of the JavaScript, which didn't have the music code yet. A hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) fixed it.
 
 ---
 
