@@ -127,7 +127,9 @@ class HostGame {
       winnerName: winner ? winner.name : null,
       winnerGuesses: winner ? winner.history.length : 0,
       target: this.phase === "over" ? this.target : null,
-      history: this.players.get(id).history, // your own letters
+      // Your own letters. A copy, so the host's own view doesn't share
+      // (and silently change along with) the game's real history.
+      history: this.players.get(id).history.map((row) => [...row]),
       players: [...this.players].map(([pid, p]) => ({
         id: pid,
         name: p.name,
