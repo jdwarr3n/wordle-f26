@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wordle Race</title>
+  <!-- Bump ?v= when a .css or .js file changes, so browsers don't mix
+       a new page with an old cached file. -->
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body class="multiplayer">
+  <main class="app">
+    <aside class="controls">
+      <p id="role" class="role">Connecting&hellip;</p>
+      <button id="ready" type="button" hidden>Start game</button>
+      <button id="music" type="button">Music: on</button>
+      <p class="hint">Race to solve the same word.<br> First to solve it wins.</p>
+      <ul id="players" class="players" aria-label="Players"></ul>
+      <a class="mode-link" href="index.html">&larr; Single player</a>
+    </aside>
+
+    <section class="game">
+      <div id="grid" class="grid" aria-label="Your guesses"></div>
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+      <div id="keyboard" class="keyboard" aria-label="Keyboard"></div>
+    </section>
+  </main>
+
+  <!-- PeerJS: browser-to-browser connections (WebRTC) -->
+  <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <script src="common.js?v=4"></script>
+  <script src="multiplayer.js?v=4"></script>
+</body>
+</html>

@@ -1,137 +1,23 @@
-// Wordle for the web, ported from wordle_tkinter.py.
-// Loads words.txt from the same directory as this page.
+// Single-player Wordle for the web, ported from wordle_tkinter.py.
+// Game rules, board and music live in common.js.
 
 "use strict";
 
-// ------------------------------------------------------------------ engine
-// (same rules and scoring as the Python version)
-
-const WORD_LENGTH = 5;
-const MAX_GUESSES = 6;
-const STRICT_WORDS = true; // Reject guesses that are not in WORDS
-
-const GREEN = "G";
-const YELLOW = "Y";
-const GRAY = ".";
-
-let WORDS = [];
-let WORD_SET = new Set();
-
-/** Return a 5-char string of G/Y/. for guess against target. */
-function scoreGuess(guess, target) {
-  const result = new Array(WORD_LENGTH).fill(GRAY);
-  const remaining = target.split("");
-  for (let i = 0; i < WORD_LENGTH; i++) {
-    if (guess[i] === target[i]) {
-      result[i] = GREEN;
-      remaining[i] = null;
-    }
-  }
-  for (let i = 0; i < WORD_LENGTH; i++) {
-    if (result[i] === GREEN) continue;
-    const j = remaining.indexOf(guess[i]);
-    if (j !== -1) {
-      result[i] = YELLOW;
-      remaining[j] = null;
-    }
-  }
-  return result.join("");
-}
-
-class WordleGame {
-  constructor(target) {
-    this.target = target || WORDS[Math.floor(Math.random() * WORDS.length)];
-    this.history = []; // list of [guess, score]
-    this.won = false;
-  }
-
-  over() {
-    return this.won || this.history.length >= MAX_GUESSES;
-  }
-
-  validate(guess) {
-    if (this.over()) return "Game over";
-    if (guess.length !== WORD_LENGTH || !/^[a-z]+$/.test(guess)) {
-      return "Need " + WORD_LENGTH + " letters";
-    }
-    if (STRICT_WORDS && !WORD_SET.has(guess)) return "Not in word list";
-    return null;
-  }
-
-  guess(guess) {
-    const error = this.validate(guess);
-    if (error) return error;
-    const score = scoreGuess(guess, this.target);
-    this.history.push([guess, score]);
-    if (score === GREEN.repeat(WORD_LENGTH)) this.won = true;
-    return null;
-  }
-}
-
-// ------------------------------------------------------------------ UI
-
-const KEY_ROWS = [
-  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DEL"],
-];
-
-// CSS class for each score letter ("." is not a valid class name)
-const SCORE_CLASS = { [GREEN]: "G", [YELLOW]: "Y", [GRAY]: "gray" };
-
 class WordleApp {
   constructor() {
-    this.gridEl = document.getElementById("grid");
     this.messageEl = document.getElementById("message");
-    this.keyboardEl = document.getElementById("keyboard");
-
-    this.tiles = this.buildGrid();
-    this.keys = this.buildKeyboard();
+    this.board = new Board(
+      document.getElementById("grid"),
+      document.getElementById("keyboard"),
+      (label) => this.press(label)
+    );
 
     document.getElementById("new-game").addEventListener("click", (e) => {
       e.currentTarget.blur(); // so Enter doesn't re-press the button
       this.newGame();
     });
-    document.addEventListener("keydown", (e) => this.onKeydown(e));
 
     this.newGame();
-  }
-
-  buildGrid() {
-    const tiles = [];
-    for (let row = 0; row < MAX_GUESSES; row++) {
-      const rowTiles = [];
-      for (let col = 0; col < WORD_LENGTH; col++) {
-        const tile = document.createElement("div");
-        tile.className = "tile";
-        this.gridEl.appendChild(tile);
-        rowTiles.push(tile);
-      }
-      tiles.push(rowTiles);
-    }
-    return tiles;
-  }
-
-  buildKeyboard() {
-    const keys = {};
-    for (const row of KEY_ROWS) {
-      const rowEl = document.createElement("div");
-      rowEl.className = "key-row";
-      for (const label of row) {
-        const key = document.createElement("button");
-        key.type = "button";
-        key.className = label.length > 1 ? "key wide" : "key";
-        key.textContent = label;
-        key.addEventListener("click", (e) => {
-          e.currentTarget.blur();
-          this.press(label);
-        });
-        rowEl.appendChild(key);
-        keys[label] = key;
-      }
-      this.keyboardEl.appendChild(rowEl);
-    }
-    return keys;
   }
 
   newGame() {
@@ -139,17 +25,6 @@ class WordleApp {
     this.current = "";
     this.message = "";
     this.draw();
-  }
-
-  letterStatus() {
-    const rank = { [GREEN]: 3, [YELLOW]: 2, [GRAY]: 1 };
-    const status = {};
-    for (const [word, score] of this.game.history) {
-      for (let i = 0; i < WORD_LENGTH; i++) {
-        status[word[i]] = Math.max(status[word[i]] || 0, rank[score[i]]);
-      }
-    }
-    return status;
   }
 
   press(label) {
@@ -178,116 +53,18 @@ class WordleApp {
     this.draw();
   }
 
-  onKeydown(e) {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === "Backspace" || e.key === "Delete") {
-      e.preventDefault();
-      this.press("DEL");
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      this.press("ENTER");
-    } else if (/^[a-zA-Z]$/.test(e.key)) {
-      this.press(e.key.toUpperCase());
-    }
-  }
-
   draw() {
-    const history = this.game.history;
-
-    // Grid
-    for (let row = 0; row < MAX_GUESSES; row++) {
-      for (let col = 0; col < WORD_LENGTH; col++) {
-        const tile = this.tiles[row][col];
-        if (row < history.length) {
-          const [word, score] = history[row];
-          tile.className = "tile " + SCORE_CLASS[score[col]];
-          tile.textContent = word[col];
-        } else if (row === history.length && col < this.current.length) {
-          tile.className = "tile typed";
-          tile.textContent = this.current[col];
-        } else {
-          tile.className = "tile";
-          tile.textContent = "";
-        }
-      }
-    }
-
-    // Status message
+    this.board.draw(this.game.history, this.current);
     this.messageEl.textContent = this.message;
-
-    // Keyboard tracker
-    const status = this.letterStatus();
-    const rankClass = { 3: "G", 2: "Y", 1: "gray" };
-    for (const [label, key] of Object.entries(this.keys)) {
-      const base = label.length > 1 ? "key wide" : "key";
-      const cls = rankClass[status[label.toLowerCase()]];
-      key.className = cls ? base + " " + cls : base;
-    }
   }
 }
-
-// ------------------------------------------------------------------ music
-
-const MUSIC_CLIPS = [
-  "audio/claw-ingame-part1.mp3",
-  "audio/claw-ingame-part2.mp3",
-];
-
-class Music {
-  constructor(button) {
-    const clip = MUSIC_CLIPS[Math.floor(Math.random() * MUSIC_CLIPS.length)];
-    this.audio = new Audio(clip);
-    this.audio.loop = true;
-    this.button = button;
-    this.started = false;
-
-    // Try to play right away. Most browsers block sound until the player
-    // clicks, taps or presses a key, so if that fails, start on the first
-    // interaction instead.
-    const start = () => {
-      if (this.started) return;
-      this.started = true;
-      this.audio.play().catch(() => { this.started = false; });
-    };
-    start();
-    for (const type of ["keydown", "pointerdown", "pointerup", "touchend", "click"]) {
-      document.addEventListener(type, start);
-    }
-
-    button.addEventListener("click", (e) => {
-      e.currentTarget.blur();
-      this.audio.muted = !this.audio.muted;
-      this.updateButton();
-    });
-    this.updateButton();
-  }
-
-  updateButton() {
-    this.button.textContent = this.audio.muted ? "Music: off" : "Music: on";
-    this.button.setAttribute("aria-pressed", String(!this.audio.muted));
-  }
-}
-
-new Music(document.getElementById("music"));
 
 // ------------------------------------------------------------------ startup
 
-async function loadWords() {
-  const response = await fetch("words.txt");
-  if (!response.ok) throw new Error("HTTP " + response.status);
-  const text = await response.text();
-  return text
-    .split("\n")
-    .map((line) => line.trim().toLowerCase())
-    .filter((line) => line.length > 0);
-}
+new Music(document.getElementById("music"));
 
 loadWords()
-  .then((words) => {
-    WORDS = words;
-    WORD_SET = new Set(words);
-    new WordleApp();
-  })
+  .then(() => new WordleApp())
   .catch((err) => {
     document.getElementById("message").textContent =
       "Could not load words.txt (" + err.message + ")";
