@@ -66,14 +66,28 @@ class HostGame {
   addPlayer(id) {
     this.joinCount += 1;
     // Someone joining mid-round starts with an empty board and can play.
-    this.players.set(id, { name: "Player " + this.joinCount, history: [] });
+    this.players.set(id, {
+      name: "Player " + this.joinCount,
+      history: [],
+      wins: 0,   // rounds won
+      played: 0, // rounds in which this player made at least one guess
+    });
     this.broadcast();
   }
 
   removePlayer(id) {
     if (!this.players.delete(id)) return;
-    if (this.phase === "playing" && this.everyoneDone()) this.phase = "over";
+    if (this.phase === "playing" && this.everyoneDone()) this.endRound();
     this.broadcast();
+  }
+
+  /** Finish the round and update everyone's wins/rounds played. */
+  endRound() {
+    this.phase = "over";
+    for (const [id, p] of this.players) {
+      if (p.history.length > 0) p.played += 1;
+      if (id === this.winner) p.wins += 1;
+    }
   }
 
   start() {
@@ -107,9 +121,9 @@ class HostGame {
     p.history.push([word, score]);
     if (score === GREEN.repeat(WORD_LENGTH)) {
       this.winner = id; // first to solve it wins the race
-      this.phase = "over";
+      this.endRound();
     } else if (this.everyoneDone()) {
-      this.phase = "over"; // nobody solved it
+      this.endRound(); // nobody solved it
     }
     this.broadcast();
     return null;
@@ -136,6 +150,8 @@ class HostGame {
         // Other players' colors only, never their letters.
         scores: p.history.map(([, score]) => score),
         done: this.isDone(p),
+        wins: p.wins,
+        played: p.played,
       })),
     };
   }
@@ -408,6 +424,12 @@ class MultiplayerApp {
         (p.id === this.view.hostId ? " (host)" : "") +
         (p.id === this.view.you ? " (you)" : "");
       li.appendChild(name);
+
+      const stats = document.createElement("span");
+      stats.className = "player-stats";
+      stats.textContent = "Wins " + p.wins + "/" + p.played;
+      stats.title = p.wins + " won out of " + p.played + " rounds played";
+      li.appendChild(stats);
 
       // A tiny board of colors only.
       const mini = document.createElement("div");

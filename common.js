@@ -212,37 +212,29 @@ const MUSIC_CLIPS = [
   "audio/claw-ingame-part2.mp3",
 ];
 
+/** Background music, off until the player turns it on. */
 class Music {
   constructor(button) {
     const clip = MUSIC_CLIPS[Math.floor(Math.random() * MUSIC_CLIPS.length)];
     this.audio = new Audio(clip);
     this.audio.loop = true;
     this.button = button;
-    this.started = false;
-
-    // Try to play right away. Most browsers block sound until the player
-    // clicks, taps or presses a key, so if that fails, start on the first
-    // interaction instead.
-    const start = () => {
-      if (this.started) return;
-      this.started = true;
-      this.audio.play().catch(() => { this.started = false; });
-    };
-    start();
-    for (const type of ["keydown", "pointerdown", "pointerup", "touchend", "click"]) {
-      document.addEventListener(type, start);
-    }
 
     button.addEventListener("click", (e) => {
       e.currentTarget.blur();
-      this.audio.muted = !this.audio.muted;
+      if (this.audio.paused) {
+        this.audio.play().catch(() => {}).finally(() => this.updateButton());
+      } else {
+        this.audio.pause();
+      }
       this.updateButton();
     });
     this.updateButton();
   }
 
   updateButton() {
-    this.button.textContent = this.audio.muted ? "Music: off" : "Music: on";
-    this.button.setAttribute("aria-pressed", String(!this.audio.muted));
+    const on = !this.audio.paused;
+    this.button.textContent = on ? "Music: on" : "Music: off";
+    this.button.setAttribute("aria-pressed", String(on));
   }
 }
